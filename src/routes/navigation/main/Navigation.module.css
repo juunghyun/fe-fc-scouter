@@ -1,0 +1,21 @@
+.navLinkActive {
+    display: inline-block;
+    color: #D97706;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.navLinkInactive {
+    display: inline-block;
+    color: #9CA3AF;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+    transform-origin: center;
+}
+
+.navLinkInactive:hover {
+    transform: scale(1.07);
+}
