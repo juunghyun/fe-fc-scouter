@@ -1,59 +1,90 @@
-import {Link, Outlet, useLocation} from "react-router";
+import {Link, Outlet, useLocation, useNavigate} from "react-router";
 import {colors} from "../../../common/style/colors";
 import styles from "./Navigation.module.css"
+import LogoutIcon from '@mui/icons-material/Logout';
+import {useAuthStore} from "../../../common/zustand/LoginState";
+import {logoutApi} from "../../../apis/authApis";
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+
+const menuItems = [
+    {title: "Home", link: "/main"},
+    {title: "Player Search", link: "/player-search"},
+    {title: "My Favorites", link: "/my-favorites"},
+];
 
 export const Navigation = () => {
-    const menuItems = [
-        {title: "Home", link: "/"},
-        {title: "Player Search", link: "/player-search"},
-        {title: "My Favorites", link: "/my-favorites"},
-    ];
-    
+    const navigation = useNavigate();
     const location = useLocation();
-    console.log(location.pathname);
+    const {isLoggedIn, logout, nickname} = useAuthStore();
+    
+    console.log(isLoggedIn)
+    
+    const onClickLogout = async () => {
+        try {
+            await logoutApi();
+            logout();
+            navigation("/main");
+        } catch (err) {
+            console.log(err);
+            alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
+        }
+    };
+    
+    const onClickLogin = () => {
+        navigation("/login");
+    }
+    
     
     return (
         <div style={{width: "100vw", height: "100vh", overflow: "hidden", background: "#1F1F1F"}}>
             {/*navigation Top Bar*/}
-            <div style={{
-                display: "flex",
-                height: 64,
-                borderBottom: colors.greyBorder,
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "18px 10%"
-            }}>
+            <div className={styles.topBarContainer}
+                 style={{borderBottom: colors.greyBorder}}
+            >
                 <span style={{fontSize: 20, fontWeight: 700}}>FC SCOUTER</span>
                 <div style={{display: "flex", flexWrap: "nowrap", gap: 23.65}}>
                     {
                         menuItems.map((item, index) => (
                             <Link key={item.link}
                                   to={item.link}
-                                  className={location.pathname === item.link ? styles.navLinkActive : styles.navLinkInactive}
-                                  // style={{
-                                  //     fontWeight: 500,
-                                  //     color: "#9CA3AF",
-                                  //     transition: "font-size 0.2s ease",
-                                  //     fontSize: 14,
-                                  //     transformOrigin: "center",
-                                  //     display: "inline-block"
-                                  // }}
-                                  // onMouseEnter={(e) => e.target.style.fontSize = "15px"}
-                                  // onMouseLeave={(e) => e.target.style.fontSize = "14px"}
+                                  className={location.pathname === item.link || location.pathname.startsWith(item.link + '/')
+                                      ? styles.navLinkActive
+                                      : styles.navLinkInactive}
                             >{item.title}</Link>
                         ))
                     }
                 </div>
-                <button style={{border: colors.greyBorder, padding: "10px 17px", fontWeight: 500, fontSize: 14}}>Login /
-                    Sign Up
-                </button>
+                
+                <div style={{display: "flex", gap: 12}}>
+                    {
+                        isLoggedIn &&
+                        <button style={{display: "flex", alignItems: "center", gap: 8, fontWeight: 500}}
+                                onClick={() => navigation("/user")}
+                        >
+                            <div style={{display: "flex", alignItems: "center", justifyContent: "center", padding: 8, background: colors.orangeFont, borderRadius: "50%"}}>
+                                <PersonOutlineOutlinedIcon style={{width: 18, height: 18}}/>
+                            </div>
+                            <span>{nickname}</span>
+                        </button>
+                    }
+                    <button style={{border: colors.greyBorder, padding: "7px 17px", fontWeight: 500, fontSize: 14}}
+                            onClick={isLoggedIn ? onClickLogout : onClickLogin}
+                    >
+                        {isLoggedIn ?
+                            <div style={{display: "flex", alignItems: "center", gap: 12}}>
+                                
+                                <LogoutIcon style={{width: 16, height: 16}}/>
+                                <span>
+                                Logout
+                            </span>
+                            </div>
+                            : "Login / Sign Up"
+                        }
+                    </button>
+                </div>
+            
             </div>
-            <div style={{
-                height: "calc(100% - 64px)",
-                display: "flex",
-                flexDirection: "column",
-                overflowY: "auto",
-            }}>
+            <div className={`custom-scrollbar ${styles.contentContainer}`}>
                 <Outlet/>
             </div>
         </div>
