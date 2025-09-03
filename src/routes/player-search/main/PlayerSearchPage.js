@@ -31,8 +31,8 @@ export const PlayerSearchPage = () => {
             const data = await getPlayerSearch(options);
             const dataWithPrice = [];
             for (const item of data.content) {
-                const priceData = await getPlayerPrice(item.id);
-                dataWithPrice.push({...item, price: priceData.price});
+                // const priceData = await getPlayerPrice(item.id);
+                dataWithPrice.push({...item, price: 0});
             }
             setPlayersData(dataWithPrice);
         } catch (error) {
@@ -40,6 +40,18 @@ export const PlayerSearchPage = () => {
             alert("존재하지 않는 선수입니다..");
         } finally {
             setLoading(false);
+        }
+    };
+    
+    const handleClickPrice = async (playerId) => {
+        try {
+            const data = await getPlayerPrice(playerId);
+            const editedData = playersData.map(item => item.id === playerId ? {...item, price: data.price} : item);
+            setPlayersData(editedData);
+            return data.price;
+        } catch (error) {
+            console.error("Error fetching player price:", error);
+            return 0;
         }
     };
     
@@ -75,7 +87,7 @@ export const PlayerSearchPage = () => {
                 <RowCell row={row} column={columns[1]}/>
                 <RowCell row={row} column={columns[2]}/>
                 <RowCell row={row} column={columns[3]}/>
-                <RowCell row={row} column={columns[4]}/>
+                <RowCell row={row} column={columns[4]} handleClickPrice={handleClickPrice}/>
             </button>
         )
     };
@@ -250,7 +262,7 @@ export const HeaderCell = ({column}) => {
     )
 };
 
-export const RowCell = ({row, column, grade = 0}) => {
+export const RowCell = ({row, column, handleClickPrice, grade = 0}) => {
     const getFontWeight = (field) => {
         switch (field) {
             case "player": {
@@ -284,7 +296,15 @@ export const RowCell = ({row, column, grade = 0}) => {
             padding: column.field === "playerName" ? "10px 60px" : "10px 25px",
             overflow: "hidden",
             borderBottom: colors.greyBorder,
-        }}>
+        }}
+             onClick={(e) => {
+                 if(column.field === "price") {
+                     e.stopPropagation();
+                     handleClickPrice(row.id);
+                 }
+             }}
+        
+        >
             <span style={{
                 fontSize: 16,
                 color: column.field === "price" ? colors.greyFont : "white",
@@ -292,7 +312,7 @@ export const RowCell = ({row, column, grade = 0}) => {
             }}>
                 {
                     column.field === "price" ?
-                        `${row[column.field].toLocaleString('kp-KR')} BP`
+                        (row.price === 0 ? "클릭하여 시세보기" : `${row[column.field].toLocaleString('kp-KR')} BP`)
                         :
                         column.field === "overallrating" ?
                             <OverallComponent overall={row[column.field]} isDetail={false}/>

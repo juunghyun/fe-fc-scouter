@@ -15,15 +15,18 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import StarIcon from '@mui/icons-material/Star';
 import {addFavoriteApi, deleteFavoriteApi, getFavoriteApi} from "../../../apis/favoriteApi";
 import {useAuthStore} from "../../../common/zustand/LoginState";
-import {getCommentListApi, postCommentApi} from "../../../apis/commentApis";
+import {deleteCommentApi, editCommentApi, getCommentListApi, postCommentApi} from "../../../apis/commentApis";
 import ChatBubbleOutlineOutlinedIcon from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import PersonIcon from '@mui/icons-material/Person';
 import SubdirectoryArrowRightOutlinedIcon from '@mui/icons-material/SubdirectoryArrowRightOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 
 
 export const PlayerDetail = () => {
-    const {isLoggedIn} = useAuthStore();
+    const {isLoggedIn, userId} = useAuthStore();
     const [playerData, setPlayerData] = useState(null);
     const [options, setOptions] = useState({grade: 0, adaptation: 0, teamColor: 0});
     const [loading, setLoading] = useState(false);
@@ -34,6 +37,8 @@ export const PlayerDetail = () => {
     const [commentList, setCommentList] = useState([]);
     const [myComment, setMyComment] = useState({content: "", parentId: null});
     const [myReply, setMyReply] = useState({content: "", parentId: null});
+    const [myEdit, setMyEdit] = useState({content: "", commentId: null});
+    
     
     const fetchPlayerData = async (optionParams) => {
         // API 호출하여 선수 데이터 가져오기
@@ -41,8 +46,8 @@ export const PlayerDetail = () => {
             setLoading(true);
             const id = location.pathname.split('/').pop();
             const data = await getPlayerDetail(id, optionParams);
-            const priceObj = await getPlayerPrice(id, optionParams.grade); // 선수 가격 정보 가져오기
-            setPlayerData({...data, price: priceObj.price}); // 선수 데이터와 가격
+            // const priceObj = await getPlayerPrice(id, optionParams.grade); // 선수 가격 정보 가져오기
+            setPlayerData({...data, price: 0}); // 선수 데이터와 가격
             await getFavoriteStatus(data);
             await fetchCommentData(id);
             
@@ -54,6 +59,17 @@ export const PlayerDetail = () => {
             setLoading(false);
         }
     };
+    
+    const handleClickPrice = async (playerId) => {
+        try {
+            const data = await getPlayerPrice(playerId);
+            setPlayerData({...playerData, price: data.price});
+            return data.price;
+        } catch (error) {
+            console.error("Error fetching player price:", error);
+            return 0;
+        }
+    }
     
     const getFavoriteStatus = async (data) => {
         if (!isLoggedIn) return;
@@ -95,7 +111,7 @@ export const PlayerDetail = () => {
         }
     }
     
-    const sendComment = async (isComment) => {
+    const sendComment = async (isComment, isEdit) => {
         // 댓글 작성 API 호출
         try {
             if (!isLoggedIn) {
@@ -103,10 +119,19 @@ export const PlayerDetail = () => {
                 return;
             }
             if (isComment) {
-                if (!myComment.content || myComment.content.trim() === "") {
-                    alert("댓글 내용을 입력해주세요.");
-                    return;
+                if(isEdit) {
+                    if(!myEdit.content || myEdit.content.trim() === "") {
+                        alert("댓글 내용을 입력해주세요.");
+                        return;
+                    }
                 }
+                else{
+                    if (!myComment.content || myComment.content.trim() === "") {
+                        alert("댓글 내용을 입력해주세요.");
+                        return;
+                    }
+                }
+                
             } else {
                 if (!myReply.content || myReply.content.trim() === "") {
                     alert("댓글 내용을 입력해주세요.");
@@ -114,9 +139,18 @@ export const PlayerDetail = () => {
                 }
             }
             
-            await postCommentApi(playerData.id, isComment ? myComment : myReply);
-            isComment ? setMyComment({content: "", parentId: null}) : setMyReply({...myReply, content: ""});
-            alert("댓글이 작성되었습니다.");
+            // 여기 댓글 수정 반영해야함
+            if(isEdit) {
+                await editCommentApi(myEdit.commentId, myEdit.content);
+                setMyEdit({content: "", commentId: null});
+                alert("댓글이 수정되었습니다.");
+            }
+            else{
+                await postCommentApi(playerData.id, isComment ? myComment : myReply);
+                isComment ? setMyComment({content: "", parentId: null}) : setMyReply({...myReply, content: ""});
+                alert("댓글이 작성되었습니다.");
+            }
+            
         } catch (error) {
             alert("댓글 작성에 실패했습니다. 다시 시도해주세요.");
             console.error("Error posting comment:", error);
@@ -133,12 +167,37 @@ export const PlayerDetail = () => {
         }
     }
     
+    const toggleEdit = async (id, content) => {
+        if (myEdit.commentId) {
+            setMyEdit({content: "", commentId: null});
+        } else {
+            setMyEdit({content: content, commentId: id});
+        }
+    }
+    
+    const deleteReply = async (commentId) => {
+        try{
+            if (!window.confirm("정말로 댓글을 삭제하시겠습니까?")) return;
+            await deleteCommentApi(commentId);
+            alert("댓글이 삭제되었습니다.");
+        } catch (error) {
+            alert("댓글 삭제에 실패했습니다. 다시 시도해주세요.");
+            console.error("Error deleting comment:", error);
+        } finally {
+            await fetchCommentData(playerData.id);
+        }
+    }
+    
+    
     useEffect(() => {
         // API로 선수 데이터 불러오기
         fetchPlayerData(options);
     }, []);
     
-    console.log(myReply, 'my')
+    console.log(myComment, "myComment");
+    console.log(myReply, "myReply");
+    console.log(myEdit, "myEdit");
+    
     
     return (
         <div className={styles.mainContainer}>
@@ -175,32 +234,39 @@ export const PlayerDetail = () => {
                     {/*선수 가격*/}
                     <div style={{display: "flex", gap: 16, alignItems: "center"}}>
                         {/*<button className={styles.smallBrightContainer}>0</button>*/}
-                        <div className={styles.brightContainer}
-                             style={{
-                                 background: "none",
-                                 // border: colors.greyBorder,
-                                 borderWidth: 2,
-                                 flexDirection: "column",
-                                 height: 80,
-                                 fontSize: 18,
-                                 minWidth: 200
-                             }}>
-                            {/*<span style={{fontSize: 16}}>현재 가격</span>*/}
-                            <span style={{fontWeight: 700}}>{playerData?.price.toLocaleString('kp-KR')} BP</span>
-                            <span style={{
-                                fontWeight: 600,
-                                marginLeft: "auto"
-                            }}>{numberToKoreanSimple(playerData?.price)}</span>
-                        </div>
+                        <button className={styles.brightContainer}
+                                style={{
+                                    background: "none",
+                                    // border: colors.greyBorder,
+                                    borderWidth: 2,
+                                    flexDirection: "column",
+                                    height: 80,
+                                    fontSize: 18,
+                                    minWidth: 200
+                                }}
+                                onClick={() => handleClickPrice(playerData.id)}
+                        >
+                            
+                            <span
+                                style={{fontWeight: 700}}>{playerData?.price !== 0 ? `${playerData?.price.toLocaleString('kp-KR')} BP` : '시세 불러오기'}</span>
+                            {
+                                playerData?.price !== 0 &&
+                                <span style={{
+                                    fontWeight: 600,
+                                    marginLeft: "auto"
+                                }}>{numberToKoreanSimple(playerData?.price)}</span>
+                            }
+                        
+                        </button>
                     </div>
                 </div>
                 
                 {/*선수스탯 미리보기*/}
                 <div style={{display: "flex", gap: 16}}>
-                    <Thumbnail title={"OVR"} value={playerData?.stats.overallRating}/>
-                    <Thumbnail title={"급여"} value={playerData?.salary}/>
-                    <Thumbnail title={"키"} value={`${playerData?.height}cm`}/>
-                    <Thumbnail title={"몸무게"} value={`${playerData?.weight}kg`}/>
+                    <Thumbnail title={"OVR"} value={playerData?.stats.overallRating ? playerData?.stats.overallRating : ''}/>
+                    <Thumbnail title={"급여"} value={playerData?.salary ? playerData?.salary : ''}/>
+                    <Thumbnail title={"키"} value={`${playerData?.height ? playerData?.height : ''}cm`}/>
+                    <Thumbnail title={"몸무게"} value={`${playerData?.weight ? playerData?.weight : ''}kg`}/>
                 </div>
             </div>
             
@@ -285,44 +351,74 @@ export const PlayerDetail = () => {
                 </div>
                 
                 <CommentComponent myComment={myComment} setMyComment={setMyComment} isLoggedIn={isLoggedIn}
+                                  myEdit={myEdit} setMyEdit={setMyEdit}
                                   sendComment={sendComment} isComment={true}/>
                 
-                <div style={{display: "flex", gap: 16, flexDirection: "column", marginTop: 32,}}>
+                <div style={{display: "flex", gap: 16, flexDirection: "column", marginTop: 32}}>
                     {
                         commentList.map((item, index) => (
                             <div key={item.commentId} className={styles.commentContainer}>
-                                <div style={{display: "flex", gap: 12}}>
-                                    <div className={styles.commentProfile}>
-                                        <PersonIcon htmlColor={colors.greyFont}/>
-                                    </div>
-                                    <div>
-                                        <span style={{fontWeight: 600, fontSize: 16}}>{item.authorNickname}</span>
-                                        <span style={{
-                                            marginLeft: 12,
-                                            color: colors.greyFont,
-                                            fontSize: 14,
-                                            fontWeight: 400
-                                        }}>{getTimeAgoAdvanced(item.createdAt)}</span>
-                                        <p style={{
-                                            fontWeight: 400,
-                                            marginTop: 8,
-                                            whiteSpace: "pre-wrap"
-                                        }}>{item.content}</p>
-                                        
-                                        <button style={{display: "flex", alignItems: "center", marginTop: 10}}
-                                                onClick={() => toggleComment(item.commentId)}
-                                        >
-                                            <SubdirectoryArrowRightOutlinedIcon htmlColor={colors.orangeFont}
-                                                                                style={{width: 16, height: 16}}/>
+                                {myEdit.commentId === item.commentId ?
+                                    <CommentComponent myComment={myEdit} setMyComment={setMyEdit}
+                                                      myReply={myReply} setMyReply={setMyReply}
+                                                      myEdit={myEdit} setMyEdit={setMyEdit}
+                                                      isLoggedIn={isLoggedIn} sendComment={sendComment}
+                                                      isEdit={true}
+                                                      isComment={true}
+                                    />
+                                    :
+                                    <div style={{display: "flex", gap: 12}}>
+                                        <div className={styles.commentProfile}>
+                                            <PersonIcon htmlColor={colors.greyFont}/>
+                                        </div>
+                                        <div>
+                                            <span style={{fontWeight: 600, fontSize: 16}}>{item.authorNickname}</span>
                                             <span style={{
-                                                color: colors.orangeFont,
-                                                marginLeft: 10,
-                                                fontSize: 14
-                                            }}>{item.children.length} Reply</span>
-                                        </button>
-                                    
-                                    </div>
-                                </div>
+                                                marginLeft: 12,
+                                                color: colors.greyFont,
+                                                fontSize: 14,
+                                                fontWeight: 400
+                                            }}>{getTimeAgoAdvanced(item.createdAt)}</span>
+                                            <p style={{
+                                                fontWeight: 400,
+                                                marginTop: 8,
+                                                whiteSpace: "pre-wrap"
+                                            }}>{item.content}</p>
+                                            
+                                            <button style={{display: "flex", alignItems: "center", marginTop: 10}}
+                                                    onClick={() => toggleComment(item.commentId)}
+                                            >
+                                                <SubdirectoryArrowRightOutlinedIcon htmlColor={colors.orangeFont}
+                                                                                    style={{width: 16, height: 16}}/>
+                                                <span style={{
+                                                    color: colors.orangeFont,
+                                                    marginLeft: 10,
+                                                    fontSize: 14
+                                                }}>{item.children.length} Reply</span>
+                                            </button>
+                                        
+                                        </div>
+                                        {
+                                            item.authorId === userId &&
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: 8,
+                                                    marginLeft: "auto",
+                                                    marginBottom: "auto",
+                                                }}>
+                                                <button onClick={() => toggleEdit(item.commentId, item.content)}>
+                                                    <EditOutlinedIcon style={{width: 16, height: 16}}
+                                                                      htmlColor={colors.orangeFont}/>
+                                                </button>
+                                                <button onClick={() => deleteReply(item.commentId)}>
+                                                    <DeleteOutlineOutlinedIcon style={{width: 16, height: 16}}
+                                                                               htmlColor={colors.greyFont}/>
+                                                </button>
+                                            </div>
+                                            
+                                        }
+                                    </div>}
                                 {
                                     item.commentId === myReply.parentId &&
                                     <div>
@@ -330,35 +426,68 @@ export const PlayerDetail = () => {
                                             item.children.length > 0 &&
                                             item.children.map(child => (
                                                 <div key={child.commentId} className={styles.commentContainer}>
-                                                    <div style={{display: "flex", gap: 12}}>
-                                                        <div className={styles.commentProfile}>
-                                                            <PersonIcon htmlColor={colors.greyFont}/>
-                                                        </div>
-                                                        <div>
+                                                    {
+                                                        child.commentId === myEdit.commentId ?
+                                                            <CommentComponent myComment={myEdit} setMyComment={setMyEdit}
+                                                                              myReply={myReply} setMyReply={setMyReply}
+                                                                              myEdit={myEdit} setMyEdit={setMyEdit}
+                                                                              isLoggedIn={isLoggedIn} sendComment={sendComment}
+                                                                              isEdit={true}
+                                                                              isComment={true}
+                                                            />
+                                                            :
+                                                            <div style={{display: "flex", gap: 12}}>
+                                                                <div className={styles.commentProfile}>
+                                                                    <PersonIcon htmlColor={colors.greyFont}/>
+                                                                </div>
+                                                                <div>
                                                             <span style={{
                                                                 fontWeight: 600,
                                                                 fontSize: 16
                                                             }}>{child.authorNickname}</span>
-                                                            <span style={{
-                                                                marginLeft: 12,
-                                                                color: colors.greyFont,
-                                                                fontSize: 14,
-                                                                fontWeight: 400
-                                                            }}>{getTimeAgoAdvanced(child.createdAt)}</span>
-                                                            <p style={{
-                                                                fontWeight: 400,
-                                                                marginTop: 8,
-                                                                whiteSpace: "pre-wrap"
-                                                            }}>{child.content}</p>
-                                                        
-                                                        </div>
-                                                    </div>
+                                                                    <span style={{
+                                                                        marginLeft: 12,
+                                                                        color: colors.greyFont,
+                                                                        fontSize: 14,
+                                                                        fontWeight: 400
+                                                                    }}>{getTimeAgoAdvanced(child.createdAt)}</span>
+                                                                    <p style={{
+                                                                        fontWeight: 400,
+                                                                        marginTop: 8,
+                                                                        whiteSpace: "pre-wrap"
+                                                                    }}>{child.content}</p>
+                                                                
+                                                                </div>
+                                                                {
+                                                                    item.authorId === userId &&
+                                                                    <div
+                                                                        style={{
+                                                                            display: "flex",
+                                                                            gap: 8,
+                                                                            marginLeft: "auto",
+                                                                            marginBottom: "auto",
+                                                                        }}>
+                                                                        <button onClick={() => toggleEdit(child.commentId, child.content)}>
+                                                                            <EditOutlinedIcon style={{width: 16, height: 16}}
+                                                                                              htmlColor={colors.orangeFont}/>
+                                                                        </button>
+                                                                        <button onClick={() => deleteReply(child.commentId)}>
+                                                                            <DeleteOutlineOutlinedIcon style={{width: 16, height: 16}}
+                                                                                                       htmlColor={colors.greyFont}/>
+                                                                        </button>
+                                                                    </div>
+                                                                    
+                                                                }
+                                                            </div>
+                                                    }
+                                                    
                                                 
                                                 </div>
                                             ))
                                         }
                                         <CommentComponent myComment={myComment} setMyComment={setMyComment}
                                                           myReply={myReply} setMyReply={setMyReply}
+                                                          myEdit={myEdit} setMyEdit={setMyEdit}
                                                           isLoggedIn={isLoggedIn} sendComment={sendComment}
                                         />
                                     </div>
@@ -445,13 +574,16 @@ const CommentComponent = ({
                               setMyComment,
                               myReply,
                               setMyReply,
+                              myEdit,
+                              setMyEdit,
+                              isEdit = false,
                               isLoggedIn,
                               sendComment,
                               isComment = false
                           }) => {
     
     return (
-        <div style={{display: "flex", gap: 12}}>
+        <div style={{display: "flex", gap: 12, marginTop: 10}}>
             {!isComment &&
                 <SubdirectoryArrowRightOutlinedIcon style={{width: 16, height: 16}} htmlColor={colors.orangeFont}/>}
             <div className={styles.commentProfile}
@@ -464,23 +596,35 @@ const CommentComponent = ({
             <textarea style={{display: "flex", width: "100%", minHeight: 100}}
                       placeholder={isLoggedIn ? "댓글을 작성해보세요!" : "로그인이 필요한 서비스입니다."}
                       disabled={!isLoggedIn}
-                      value={isComment ? myComment.content : myReply.content}
-                      onChange={e => isComment ? setMyComment({
-                          ...myComment,
-                          content: e.target.value
-                      }) : setMyReply({...myReply, content: e.target.value})}
+                      value={isComment ? isEdit ? myEdit.content : myComment.content : myReply.content}
+                      onChange={e =>
+                          isComment ?
+                              isEdit ?
+                                  setMyEdit({
+                                      ...myEdit,
+                                      content: e.target.value
+                                  }) :
+                                  setMyComment({
+                                      ...myComment,
+                                      content: e.target.value
+                                  }) :
+                              setMyReply({...myReply, content: e.target.value})}
             />
-            <button style={{
-                background: colors.orangeFont,
-                width: 40,
-                height: 40,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginTop: "auto"
-            }}
-                    onClick={() => sendComment(isComment)}
-            ><SendOutlinedIcon/></button>
+            <div style={{display: "flex", flexDirection: "column", }}>
+                {isEdit && <button onClick={() => setMyEdit({commentId: null, content: ""})} style={{marginLeft: "auto", marginBottom: "auto"}}><CloseOutlinedIcon htmlColor={colors.greyFont} style={{width: 18, height: 18}}/> </button>}
+                <button style={{
+                    background: colors.orangeFont,
+                    width: 40,
+                    height: 40,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: "auto"
+                }}
+                        onClick={() => sendComment(isComment, isEdit)}
+                ><SendOutlinedIcon/></button>
+            </div>
+            
         </div>
     )
 }

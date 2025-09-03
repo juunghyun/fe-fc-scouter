@@ -40,7 +40,7 @@ export const LoginPage = () => {
                 refreshToken: data.refreshToken
             };
             
-            login(data.nickname, token, loginInfo.email);
+            login(data.nickname, data.userId, token, loginInfo.email);
             navigation('/main');
         } catch (err) {
             if (err.status === 403) {
@@ -51,9 +51,19 @@ export const LoginPage = () => {
         }
     };
     
+    const handleLogout = async () => {
+        try {
+            await logoutApi();
+            logout();
+        }
+        catch (error) {
+            logout();
+        }
+        
+    }
+    
     useEffect(() => {
-        isLoggedIn && logoutApi();
-        logout();
+        isLoggedIn && handleLogout();
     }, []);
     
     
