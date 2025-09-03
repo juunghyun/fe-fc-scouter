@@ -14,6 +14,7 @@ authInstance.interceptors.request.use(
         return config;
     },
     (error) => {
+        
         return Promise.reject(error)
     }
 );
@@ -23,13 +24,18 @@ authInstance.interceptors.response.use(
         return response;
     },
     (error) => {
-        // 403 에러 시 로그아웃 처리
-        if (error.response?.status === 403) {
+        const isAuthRequest = error.config?.headers?.Authorization;
+        
+        // CORS 에러 + 인증 요청 = 401로 추정
+        const isCorsError = !error.response && error.message.includes('Network Error');
+        
+        if ((error.response?.status === 401) || (isCorsError && isAuthRequest)) {
+            console.log('인증 에러 감지 (401 또는 CORS)');
             useAuthStore.getState().logout();
             alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
-            // 로그인 페이지로 리다이렉트 (옵션)
             window.location.href = '/main';
         }
+        
         return Promise.reject(error);
     }
 );

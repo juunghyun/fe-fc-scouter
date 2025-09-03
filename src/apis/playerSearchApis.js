@@ -23,7 +23,7 @@ function buildQueryString(obj) {
 }
 
 export const getPlayerSearch = async (filters) => {
-    const tmp = {name: filters.searchName, nation: filters.nation, teamNames: [filters.team1, filters.team2]};
+    const tmp = {name: filters.searchName, nation: filters.nation, teamNames: [filters.team1, filters.team2], page: filters.page};
     const queryString = buildQueryString(tmp);
     const {data} = await defaultInstance.get(`/api/v1/players/search?${queryString}`);
     return data;

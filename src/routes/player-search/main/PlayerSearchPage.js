@@ -12,6 +12,8 @@ import {OverallComponent} from "../../../common/components/commonComponents";
 export const PlayerSearchPage = () => {
     const [loading, setLoading] = useState(false);
     const [playersData, setPlayersData] = useState([]);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
     const [filters, setFilters] = useState({searchName: "", nation: "", team1: "", team2: ""});
     const navigation = useNavigate();
     const [searchParams] = useSearchParams('query');
@@ -43,11 +45,55 @@ export const PlayerSearchPage = () => {
         }
     };
     
+    const loadMoreData = async () => {
+        if (loading || !hasMore) return;
+        
+        setLoading(true);
+        
+        try {
+            // API 호출
+            const data = await getPlayerSearch({...filters, page: page + 1});
+            
+            if (data.content.length === 0) {
+                setHasMore(false);
+            } else {
+                // 기존 데이터에 새 데이터 추가
+                const dataWithPrice = [];
+                for (const item of data.content) {
+                    // const priceData = await getPlayerPrice(item.id);
+                    dataWithPrice.push({...item, price: 0});
+                }
+                setPlayersData(prev => [...prev, ...dataWithPrice]);
+                setPage(prev => prev + 1);
+            }
+        } catch (error) {
+            console.error('데이터 로딩 실패:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const handlePageScroll = async (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        
+        // 스크롤이 하단에 거의 도달했을 때 (100px 여유)
+        if (scrollHeight - scrollTop <= clientHeight + 50) {
+            await loadMoreData();
+        }
+    };
+    
+    
     const handleClickPrice = async (playerId) => {
         try {
+            
             const data = await getPlayerPrice(playerId);
-            const editedData = playersData.map(item => item.id === playerId ? {...item, price: data.price} : item);
-            setPlayersData(editedData);
+            // 스크롤 위치 보존을 위해 함수형 업데이트 사용
+            setPlayersData(prevData =>
+                prevData.map(item =>
+                    item.id === playerId ? {...item, price: data.price} : item
+                )
+            );
+            
             return data.price;
         } catch (error) {
             console.error("Error fetching player price:", error);
@@ -57,6 +103,7 @@ export const PlayerSearchPage = () => {
     
     const handleSearchChange = (e, field) => {
         setFilters({...filters, [field]: e.target.value});
+        
     };
     
     const headerRef = useRef(null);
@@ -68,10 +115,13 @@ export const PlayerSearchPage = () => {
         }
     };
     
-    const handleBodyScroll = () => {
+    const handleBodyScroll = (e) => {
         if (headerRef.current && bodyRef.current) {
             headerRef.current.scrollLeft = bodyRef.current.scrollLeft;
         }
+        
+        handlePageScroll(e);
+        
     };
     
     
@@ -115,7 +165,7 @@ export const PlayerSearchPage = () => {
                     <span style={{color: colors.greyFont, fontSize: 18, fontWeight: 400}}>FC Online의 선수들을 검색해보세요!</span>
                 </div>
                 <div style={{display: "flex", flexDirection: "column"}}>
-                    <span style={{fontSize: 24, fontWeight: 700, color: colors.orangeFont, marginLeft: "auto"}}>6</span>
+                    <span style={{fontSize: 24, fontWeight: 700, color: colors.orangeFont, marginLeft: "auto"}}>{playersData.length}</span>
                     <span style={{fontSize: 14, fontWeight: 400, color: colors.greyFont}}>Players Found</span>
                 </div>
             </div>

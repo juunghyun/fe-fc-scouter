@@ -62,7 +62,7 @@ export const PlayerDetail = () => {
     
     const handleClickPrice = async (playerId) => {
         try {
-            const data = await getPlayerPrice(playerId);
+            const data = await getPlayerPrice(playerId, options.grade);
             setPlayerData({...playerData, price: data.price});
             return data.price;
         } catch (error) {
@@ -498,6 +498,7 @@ export const PlayerDetail = () => {
                     }
                 </div>
             </div>
+            
         </div>
     )
 }
@@ -518,7 +519,7 @@ const StatContainer = ({title, children}) => {
         <div className={commonStyles.subContainerNoCenter}
              style={{width: "100%", minHeight: 320, padding: 25, flexDirection: "column", gap: 50}}
         >
-            <span style={{fontSize: 20, fontWeight: 700}}>Physical</span>
+            <span style={{fontSize: 20, fontWeight: 700}}>{title}</span>
             <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24}}>
                 {children}
             </div>

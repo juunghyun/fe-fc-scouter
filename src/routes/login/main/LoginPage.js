@@ -21,7 +21,7 @@ export const LoginPage = () => {
             setMode("login");
             setSignUpInfo({email: "", password: "", nickname: ""});
         } catch (err) {
-            if(err.status === 403) {
+            if(err.status === 400) {
                 alert("입력한 정보가 올바르지 않습니다. 다시 확인해주세요.");
             }
             else{
@@ -43,7 +43,7 @@ export const LoginPage = () => {
             login(data.nickname, data.userId, token, loginInfo.email);
             navigation('/main');
         } catch (err) {
-            if (err.status === 403) {
+            if (err.status === 400) {
                 alert("이메일 혹은 비밀번호가 올바르지 않습니다.");
             } else {
                 alert("로그인에 실패했습니다. 다시 시도해주세요.");

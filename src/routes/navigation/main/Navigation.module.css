@@ -12,6 +12,7 @@
     overflow-y: auto;
     padding: 30px 10%;
     scrollbar-gutter: stable;
+    justify-content: space-between;
 }
 
 .navLinkActive {
@@ -34,4 +35,20 @@
 
 .navLinkInactive:hover {
     transform: scale(1.07);
+}
+
+.footerContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: auto;
+
+    & > div{
+        color: #9CA3AF;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
 }
