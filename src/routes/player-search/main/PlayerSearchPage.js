@@ -7,7 +7,7 @@ import {useNavigate, useSearchParams} from "react-router";
 import {getPlayerPrice, getPlayerSearch} from "../../../apis/playerSearchApis";
 import {CircularProgress} from "@mui/material";
 import AutoSizer from "react-virtualized-auto-sizer";
-import {OverallComponent} from "../../../common/components/commonComponents";
+import {Footer, OverallComponent} from "../../../common/components/commonComponents";
 
 export const PlayerSearchPage = () => {
     const [loading, setLoading] = useState(false);
@@ -169,7 +169,7 @@ export const PlayerSearchPage = () => {
                     <span style={{fontSize: 14, fontWeight: 400, color: colors.greyFont}}>Players Found</span>
                 </div>
             </div>
-            <div style={{display: "flex", gap: 32, height: "100%", marginTop: 48}}>
+            <div style={{display: "flex", gap: 32, height: "80%", marginTop: 48, minHeight: 670}}>
                 {/*검색필터*/}
                 <div className={commonStyles.subContainerNoCenter}
                      style={{
@@ -292,7 +292,7 @@ export const PlayerSearchPage = () => {
                 
                 </div>
             </div>
-        
+            <Footer />
         </div>
     )
 }

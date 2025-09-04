@@ -6,6 +6,7 @@ import {getPlayerDetail, getPlayerPrice} from "../../../apis/playerSearchApis";
 import {useLocation, useNavigate} from "react-router";
 import ProgressBar from "@ramonak/react-progress-bar";
 import {
+    Footer,
     getTimeAgoAdvanced,
     hexToRgba,
     numberToKoreanSimple,
@@ -499,6 +500,8 @@ export const PlayerDetail = () => {
                 </div>
             </div>
             
+            {/*개인정보 처리 방침*/}
+            <Footer />
         </div>
     )
 }

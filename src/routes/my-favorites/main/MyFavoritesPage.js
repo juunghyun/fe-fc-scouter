@@ -2,7 +2,7 @@ import styles from './MyFavoritesPage.module.css'
 import commonStyles from "../../../common/css/common.module.css";
 import {useAuthStore} from "../../../common/zustand/LoginState";
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import {hexToRgba} from "../../../common/components/commonComponents";
+import {Footer, hexToRgba} from "../../../common/components/commonComponents";
 import {colors} from "../../../common/style/colors"
 import {useEffect, useRef, useState} from "react";
 import {getFavoriteApi} from "../../../apis/favoriteApi";
@@ -157,6 +157,7 @@ export const MyFavoritesPage = () => {
                     </div>
             }
         
+            <Footer />
         </div>
     );
 }

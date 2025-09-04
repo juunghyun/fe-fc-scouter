@@ -23,3 +23,19 @@
     border-radius: 10px;
     z-index: 1300;
 }
+
+.footerContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: auto;
+
+    & > div{
+        color: #9CA3AF;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+}

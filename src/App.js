@@ -7,6 +7,7 @@ import {MyFavoritesPage} from "./routes/my-favorites/main/MyFavoritesPage";
 import {PlayerDetail} from "./routes/player-search/main/PlayerDetail";
 import {LoginPage} from "./routes/login/main/LoginPage";
 import {UserPage} from "./routes/user/main/userPage";
+import {PrivacyPage} from "./routes/privacy/main/PrivacyPage";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                     <Route path="/player-search/:playerId" element={<PlayerDetail/>}/>
                     <Route path="/my-favorites" element={<MyFavoritesPage/>}/>
                     <Route path="/user" element={<UserPage/>}/>
+                    <Route path="/privacy" element={<PrivacyPage/>} />
                 </Route>
             </Routes>
         </BrowserRouter>
