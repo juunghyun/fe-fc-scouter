@@ -30,7 +30,7 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    margin-top: auto;
+    /*margin-top: auto;*/
 
     & > div{
         color: #9CA3AF;

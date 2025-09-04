@@ -88,13 +88,6 @@ export const Navigation = () => {
             </div>
             <div className={`custom-scrollbar ${styles.contentContainer}`}>
                 <Outlet/>
-                {/*<div className={styles.footerContainer}>*/}
-                {/*    <div>© 2025 FC SCOUTER. All rights reserved.</div>*/}
-                {/*    <button>개인정보 처리방침</button>*/}
-                {/*    <div>본 사이트는 NEXON Korea의 공식 서비스가 아니며, FC ONLINE 게임 데이터를 기반으로 한 팬 사이트입니다.</div>*/}
-                {/*    <div>사이트 내 모든 선수 데이터의 저작권은 NEXON Korea에 있습니다. 모든 정보는 NEXON Open API와 FC ONLINE 공식 홈페이지를 기반으로 제공됩니다.</div>*/}
-                {/*    <div>문의: forcomfe81@gmail.com</div>*/}
-                {/*</div>*/}
             </div>
         </div>
     )

@@ -22,7 +22,15 @@ export const MainPage = () => {
     
     return (
         <div className={styles.mainContainer}>
-            <div style={{display: "flex", height: "100%", width: "100%", alignItems: "center", justifyContent:"center", flexDirection: "column"}}>
+            <div style={{
+                display: "flex",
+                width: "100%",
+                // height: "90%",
+                alignItems: "center",
+                // background: "white",
+                justifyContent: "center",
+                flexDirection: "column"
+            }}>
                 <span className={styles.description}>실시간 가격과 선수들의 스탯들을 제공합니다!</span>
                 <span className={styles.description}>궁금한 선수들을 즐겨찾기해보세요.</span>
                 
@@ -104,8 +112,8 @@ export const MainPage = () => {
                 </div>
             </div>
             
-        
-            <Footer />
+            
+            <Footer/>
         </div>
     );
 }

@@ -32,9 +32,10 @@ code {
     margin: 0;
     font-weight: 600;
     user-select: none;
-    white-space: nowrap;
     box-sizing: border-box;
 }
+
+
 
 /*
   Typographic tweaks!
@@ -60,6 +61,7 @@ img, picture, video, canvas, svg {
 input, button, textarea, select, span, div {
     font: inherit;
     color: #FFFFFF;
+    white-space: nowrap;
 }
 
 
