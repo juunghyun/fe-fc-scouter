@@ -24,15 +24,16 @@ export const MainPage = () => {
         <div className={styles.mainContainer}>
             <div style={{
                 display: "flex",
-                width: "100%",
-                // height: "90%",
+                height: "100%",
                 alignItems: "center",
-                // background: "white",
                 justifyContent: "center",
-                flexDirection: "column"
+                flexDirection: "column",
             }}>
-                <span className={styles.description}>실시간 가격과 선수들의 스탯들을 제공합니다!</span>
-                <span className={styles.description}>궁금한 선수들을 즐겨찾기해보세요.</span>
+                <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
+                    <span className={styles.description}>실시간 가격과 선수들의 스탯들을 제공합니다!</span>
+                    <span className={styles.description}>궁금한 선수들을 즐겨찾기해보세요.</span>
+                </div>
+                
                 
                 {/*검색박스*/}
                 <div className={styles.subContainer}
