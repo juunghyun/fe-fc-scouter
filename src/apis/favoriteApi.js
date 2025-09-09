@@ -1,16 +1,23 @@
-import {authInstance} from "./authorization";
+// apiClient 하나만 import하여 모든 요청을 처리합니다.
+import { apiClient } from "./apiClient";
 
+// 내 즐겨찾기 목록 조회
 export const getFavoriteApi = async () => {
-    const {data} = await authInstance.get('/api/v1/favorites');
+    // authInstance -> apiClient로 변경
+    const {data} = await apiClient.get('/api/v1/favorites');
     return data;
 }
 
+// 즐겨찾기 추가
 export const addFavoriteApi = async (playerId, grade) => {
-    const {data} = await authInstance.post('/api/v1/favorites', {playerId, grade: grade ? grade : 1});
+    // authInstance -> apiClient로 변경
+    const {data} = await apiClient.post('/api/v1/favorites', {playerId, grade: grade ? grade : 1});
     return data;
 }
 
+// 즐겨찾기 삭제
 export const deleteFavoriteApi = async (playerId) => {
-    const {data} = await authInstance.delete(`/api/v1/favorites/${playerId}`);
+    // authInstance -> apiClient로 변경
+    const {data} = await apiClient.delete(`/api/v1/favorites/${playerId}`);
     return data;
 }
